@@ -31,22 +31,23 @@ class HomeViewModel: ObservableObject {
     @Published var homeDataModel: HomeDataModel?
     
     func getHomeData() {
-        let publishers = Publishers.Zip(
-            getPublisher(endpoint: .movies, type: Movie.self),
-            getPublisher(endpoint: .staffPicks, type: Movie.self)
-        )
-        publishers.map { (movies, staffs) in
-            HomeDataModel(movies: movies, staffPicks: staffs)
-        }
-        .sink { completion in
+        getPublisher(endpoint: .movies, type: Movie.self).sink { [weak self] completion in
             if case let .failure(error) = completion {
                 print("Error -> \(error.localizedDescription)")
             }
-        } receiveValue: { [weak self] homeDataModel in
-            self?.homeDataModel = homeDataModel
+        } receiveValue: { [weak self] movies in
+            self?.homeDataModel = HomeDataModel(movies: movies, staffPicks: self?.homeDataModel?.staffPicks ?? [])
         }
         .store(in: &cancellable)
-
+        
+        getPublisher(endpoint: .staffPicks, type: Movie.self).sink { [weak self] completion in
+            if case let .failure(error) = completion {
+                print("Error -> \(error.localizedDescription)")
+            }
+        } receiveValue: { [weak self] movies in
+            self?.homeDataModel = HomeDataModel(movies: self?.homeDataModel?.movies ?? [], staffPicks: movies)
+        }
+        .store(in: &cancellable)
     }
     
     func getPublisher<T: Decodable>(endpoint: Endpoint, type: T.Type) -> Future<[T], Error> {

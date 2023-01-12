@@ -9,11 +9,15 @@ import Foundation
 import Combine
 
 enum Endpoint: String {
-    case movies = "movies"
-    case staffPicks = "staff_picks"
+    case movies = "movies.json"
+    case staffPicks = "staff_picks.json"
 }
 
-class NetworkManager {
+protocol Service {
+    func getData<T: Decodable>(endpoint: Endpoint, type: T.Type) -> Future<[T], Error>
+}
+
+class NetworkManager: Service {
     static let shared = NetworkManager()
 
     private init() {
@@ -24,7 +28,7 @@ class NetworkManager {
     
     func getData<T: Decodable>(endpoint: Endpoint, type: T.Type) -> Future<[T], Error> {
         return Future<[T], Error> { [weak self] promise in
-            guard let self = self, let url = URL(string: self.baseURL.appending("/\(endpoint.rawValue)").appending(".json")) else {
+            guard let self = self, let url = URL(string: self.baseURL.appending("/\(endpoint.rawValue)")) else {
                 return promise(.failure(NetworkError.invalidURL))
             }
             print("URL is \(url.absoluteString)")
