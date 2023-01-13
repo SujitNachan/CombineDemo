@@ -12,7 +12,7 @@ class HomeViewController: UIViewController {
     var movieTableView: UITableView?
     private var cancellables = Set<AnyCancellable>()
     private var movieTableViewDelegate = MovieTableViewDelegate()
-    private var movieTableViewDataSource: MovieTableViewDataSourceProtocol!
+    private var movieTableViewDataSource: MovieTableViewDataSource!
     
     override func viewDidLoad() {
         super.viewDidLoad()

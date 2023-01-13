@@ -14,27 +14,7 @@ enum HomeViewSections: Int, CaseIterable {
     case ourStaff
 }
 
-protocol MovieTableViewDataSourceProtocol: UITableViewDataSource {
-    var staffPicks: [StaffPicksViewModel] { get set }
-    var movies: [FavoriteMovieViewModel] { get set }
-    
-    var reloadTableSubject: PassthroughSubject<Void,Never> { get set }
-    
-    func observeHomeDataModel()
-    func fetchData()
-    
-    func numberOfSections(in tableView: UITableView) -> Int
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
-}
-
-extension MovieTableViewDataSourceProtocol {
-    var cellSize: CGSize {
-        CGSize(width: UIScreen.main.bounds.height*0.21, height: UIScreen.main.bounds.height*0.31)
-    }
-}
-
-class MovieTableViewDataSource: NSObject, MovieTableViewDataSourceProtocol {
+class MovieTableViewDataSource: NSObject, UITableViewDataSource {
     var staffPicks: [StaffPicksViewModel] = []
     var movies: [FavoriteMovieViewModel] = []
     var cancellables = Set<AnyCancellable>()
@@ -42,6 +22,10 @@ class MovieTableViewDataSource: NSObject, MovieTableViewDataSourceProtocol {
     
     var reloadTableSubject = PassthroughSubject<Void,Never>()
 
+    var cellSize: CGSize {
+        CGSize(width: UIScreen.main.bounds.height*0.21, height: UIScreen.main.bounds.height*0.31)
+    }
+    
     init(homeViewModel: HomeViewModel) {
         self.homeViewModel = homeViewModel
     }

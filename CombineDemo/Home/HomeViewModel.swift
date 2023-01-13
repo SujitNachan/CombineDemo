@@ -27,40 +27,36 @@ class HomeViewModel: ObservableObject, HomeDataModelProtocol {
     var movies: [Movie] = []
     var staffPicks: [Movie] = []
     private var cancellable = Set<AnyCancellable>()
-    private var homeService: ServiceProtocol
+    private var homeService: HomeServiceInterface
     
     var homeViewModelChanageSubject = PassthroughSubject<HomeViewModel,Never>()
     
-    init(homeService: ServiceProtocol) {
+    init(homeService: HomeServiceInterface) {
         self.homeService = homeService
     }
     
     func getHomeData() {
-        getPublisher(endpoint: .movies, type: Movie.self).sink { completion in
+        homeService.fetchMovie.sink { completion in
             if case let .failure(error) = completion {
                 print("Error -> \(error.localizedDescription)")
             }
-        } receiveValue: { [weak self] movies in
+        } receiveValue: { [weak self] newMovies in
             guard let self = self else { return }
-            self.movies = movies
+            self.movies = newMovies
             self.homeViewModelChanageSubject.send(self)
         }
         .store(in: &cancellable)
         
-        getPublisher(endpoint: .staffPicks, type: Movie.self).sink { completion in
+        homeService.fetchStaffPicks.sink { completion in
             if case let .failure(error) = completion {
                 print("Error -> \(error.localizedDescription)")
             }
-        } receiveValue: { [weak self] movies in
+        } receiveValue: { [weak self] newMovies in
             guard let self = self else { return }
-            self.staffPicks = movies
+            self.staffPicks = newMovies
             self.homeViewModelChanageSubject.send(self)
         }
         .store(in: &cancellable)
-    }
-    
-    func getPublisher<T: Decodable>(endpoint: Endpoint, type: T.Type) -> Future<[T], Error> {
-        homeService.getData(endpoint: endpoint, type: type)
     }
     
     func bookmark(staffPick: StaffPicksViewModel) {

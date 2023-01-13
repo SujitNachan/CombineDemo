@@ -17,7 +17,7 @@ class HomeViewControllerTest: XCTestCase {
         super.setUp()
         sut = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "HomeViewController")
         sut.loadViewIfNeeded()
-        movieTableViewDataSource = MovieTableViewDataSourceMock()
+        movieTableViewDataSource = MovieTableViewDataSourceMock(mockHomeViewModel: MockHomeViewModel(mockHomeService: MockService()))
         sut.movieTableView?.dataSource = movieTableViewDataSource
     }
     
@@ -27,8 +27,8 @@ class HomeViewControllerTest: XCTestCase {
     }
     
     func testFetchDataMethod() {
-        movieTableViewDataSource.fetchData()
-        XCTAssertTrue(movieTableViewDataSource.fetchDataCalled)
+        XCTAssertEqual(movieTableViewDataSource.movies.count, 1)
+        XCTAssertEqual(movieTableViewDataSource.staffPicks.count, 1)
     }
     
     func testobserveHomeDataModelMethod() {
@@ -73,13 +73,20 @@ class MovieTableViewDataSourceMock: NSObject, MovieTableViewDataSourceMockProtoc
     
     var observeHomeDataModelCalled = false
     var fetchDataCalled = false
+    var mockHomeViewModel: MockHomeViewModel
+    
+    init(mockHomeViewModel: MockHomeViewModel) {
+        self.mockHomeViewModel = mockHomeViewModel
+    }
     
     func observeHomeDataModel() {
         observeHomeDataModelCalled = true
+        self.reloadTableSubject.send()
     }
     
     func fetchData() {
-        fetchDataCalled = true
+        self.mockHomeViewModel.staffPicks = getMockMovieArray()
+        self.mockHomeViewModel.movies = getMockMovieArray()
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -92,5 +99,24 @@ class MovieTableViewDataSourceMock: NSObject, MovieTableViewDataSourceMockProtoc
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         UITableViewCell()
+    }
+    
+    func getMockMovieArray() -> [Movie] {
+        [Movie(rating: 1.5, id: 1, revenue: 300, releaseDate: "01/02/2020", director: Director(name: "Rajamauli", pictureUrl: "http://www.google.com"), posterUrl: "http://www.google.com", cast: [Cast(name: "Govinda", pictureUrl: "http://www.google.com", character: "Raja")], runtime: 40, title: "Raja Babu", overview: "good", reviews: 3, budget: 300, language: "Hindi", genres: ["Comedy"])]
+    }
+}
+
+class MockService: ServiceProtocol {
+    var baseURL: String = ""
+    var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
+}
+
+class MockHomeViewModel: HomeDataModelProtocol {
+    var movies: [Movie] = []
+    var staffPicks: [Movie] = []
+    var mockHomeService: ServiceProtocol
+    
+    init(mockHomeService: ServiceProtocol) {
+        self.mockHomeService = mockHomeService
     }
 }

@@ -10,16 +10,16 @@ import Combine
 @testable import CombineDemo
 
 final class CombineDemoTests: XCTestCase {
-    private var homeViewModel: HomeViewModel!
+//    private var homeViewModel: HomeViewModel!
     
     override func setUp() {
-        homeViewModel = HomeViewModel(homeService: HomeService())
+//        homeViewModel = HomeViewModel(homeService: HomeService())
         super.setUp()
     }
     
     override func tearDown() {
         super.tearDown()
-        homeViewModel = nil
+//        homeViewModel = nil
     }
     
 //    func testHomeViewModel() {
@@ -27,10 +27,18 @@ final class CombineDemoTests: XCTestCase {
 //    }
 }
 
-class HomeDataModelMock {
-    var mockValues: [Movie] = []
-    var fetchValueCounter = 0
-    var expectation: XCTestExpectation?
+class MockHomeService: ServiceProtocol {
+    var baseURL: String = ""
     
-//    func fetch
+    var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
+    
+    var isMockHomeServiceCalled = false
+    
+    var result: Future<[T], Error>?
+    
+    func getData<T>(endpoint: Endpoint, type: T.Type) -> Future<[T], Error> where T : Decodable {
+        isMockHomeServiceCalled = true
+        
+        return Future<[AnyObject]>
+    }
 }
