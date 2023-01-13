@@ -13,7 +13,7 @@ class LoopMediaCollectioViewCell: UICollectionViewCell, ReusableView, NibLoadabl
     @IBOutlet private weak var imageView: ImageViewWithCache!
     @IBOutlet private weak var containerView: UIView!
     
-    var celldata: TableViewCellWithCollectionViewViewModel? {
+    var celldata: FavoriteMovieViewModel? {
         didSet {
             self.configureCell()
         }

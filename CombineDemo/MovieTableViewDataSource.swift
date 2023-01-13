@@ -14,31 +14,52 @@ enum HomeViewSections: Int, CaseIterable {
     case ourStaff
 }
 
-class MovieTableViewDataSource: NSObject, UITableViewDataSource {
-    private var staffPicks: [StaffPicksViewModel] = []
-    private var movies: [FavoriteMovieViewModel] = []
-    private var cellSize: CGSize = .zero
-    private var cancellables = Set<AnyCancellable>()
-    private var homeViewModel = HomeViewModel()
+protocol MovieTableViewDataSourceProtocol: UITableViewDataSource {
+    var staffPicks: [StaffPicksViewModel] { get set }
+    var movies: [FavoriteMovieViewModel] { get set }
     
-    let reloadTableSubject = PassthroughSubject<Void,Never>()
+    var reloadTableSubject: PassthroughSubject<Void,Never> { get set }
     
-    override init() {
+    func observeHomeDataModel()
+    func fetchData()
+    
+    func numberOfSections(in tableView: UITableView) -> Int
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+}
+
+extension MovieTableViewDataSourceProtocol {
+    var cellSize: CGSize {
+        CGSize(width: UIScreen.main.bounds.height*0.21, height: UIScreen.main.bounds.height*0.31)
+    }
+}
+
+class MovieTableViewDataSource: NSObject, MovieTableViewDataSourceProtocol {
+    var staffPicks: [StaffPicksViewModel] = []
+    var movies: [FavoriteMovieViewModel] = []
+    var cancellables = Set<AnyCancellable>()
+    var homeViewModel: HomeViewModel
+    
+    var reloadTableSubject = PassthroughSubject<Void,Never>()
+
+    init(homeViewModel: HomeViewModel) {
+        self.homeViewModel = homeViewModel
+    }
+    
+    func fetchData() {
         self.homeViewModel.getHomeData()
     }
     
-    func update(homeDataModel: HomeDataModel, cellSize: CGSize) {
+    private func update(homeDataModel: HomeDataModel) {
         self.staffPicks = homeDataModel.staffPicksViewModels
         self.movies = homeDataModel.favoriteMovieViewModels
-        self.cellSize = cellSize
     }
     
     func observeHomeDataModel() {
         homeViewModel.$homeDataModel.sink { [weak self] homeDataModel in
             guard let self = self,
             let homeDataModel = homeDataModel else { return }
-            let itemSize = CGSize(width: UIScreen.main.bounds.height*0.21, height: UIScreen.main.bounds.height*0.31)
-            self.update(homeDataModel: homeDataModel, cellSize: itemSize)
+            self.update(homeDataModel: homeDataModel)
             self.reloadTableSubject.send()
         }
         .store(in: &cancellables)
@@ -68,16 +89,18 @@ class MovieTableViewDataSource: NSObject, UITableViewDataSource {
                 .sink { [weak self, indexPath] staffPick in
                     guard let self = self else { return }
                     self.homeViewModel.bookmark(staffPick: staffPick)
-                    tableView.reloadRows(at: [indexPath], with: .none)
+                    UIView.performWithoutAnimation {
+                        tableView.reloadRows(at: [indexPath], with: .none)
+                    }
             }.store(in: &staffCell.cancellables)
             return staffCell
             
         default:
             let movieCell: TableViewCellWithCollectionView = tableView.dequeueReusableCell(for: indexPath)
             movieCell.configuation = FavoriteMovieCellConfiguration(cellData: self.movies, footerSize: cellSize, itemSize: cellSize)
-            movieCell.didSelectHandlerSubject.sink { [unowned self] yourFavoriteMovie in
-                
-            }.store(in: &cancellables)
+//            movieCell.didSelectHandlerSubject.sink { [unowned self] yourFavoriteMovie in
+//                
+//            }.store(in: &cancellables)
 //            movieCell.didSelectHandler = { [unowned self] yourFavoriteMovie in
 ////                self.interactor?.movieDidSelect(yourFavoriteMovieViewModel: yourFavoriteMovie)
 //            }

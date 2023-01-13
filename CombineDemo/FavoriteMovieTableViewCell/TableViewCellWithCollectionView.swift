@@ -6,22 +6,10 @@
 //
 
 import UIKit
+import Combine
 
-struct TableViewCellWithCollectionViewViewModel {
-    let id: Int?
-    let imageURL: String?
-    let primaryText: String?
-    let secondaryText: String?
-}
-
-protocol TableViewCellWithCollectionViewConfiguration {
-    var cellData: [TableViewCellWithCollectionViewViewModel]? { get set }
-    var footerSize: CGSize { get set }
-    var itemSize: CGSize { get set }
-}
-
-struct TableViewCellWithCollectionViewConfigurator: TableViewCellWithCollectionViewConfiguration {
-    var cellData: [TableViewCellWithCollectionViewViewModel]?
+struct FavoriteMovieCellConfiguration {
+    var cellData: [FavoriteMovieViewModel]
     var footerSize: CGSize
     var itemSize: CGSize
 }
@@ -30,14 +18,14 @@ class TableViewCellWithCollectionView: UITableViewCell, ReusableView, NibLoadabl
     @IBOutlet private weak var collectionView: UICollectionView!
     @IBOutlet private weak var collectionViewHeightConstraint: NSLayoutConstraint!
     
-    var configuation: TableViewCellWithCollectionViewConfiguration? {
+    var configuation: FavoriteMovieCellConfiguration? {
         didSet {
             collectionView.reloadData()
             collectionViewHeightConstraint.constant = configuation?.itemSize.height ?? .zero
         }
     }
     
-    var didSelectHandler: ((_ yourFavoriteMovieViewModel: TableViewCellWithCollectionViewViewModel) -> ())?
+//    var didSelectHandler: ((_ yourFavoriteMovieViewModel: TableViewCellWithCollectionViewViewModel) -> ())?
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -56,7 +44,7 @@ class TableViewCellWithCollectionView: UITableViewCell, ReusableView, NibLoadabl
 
 extension TableViewCellWithCollectionView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return configuation?.cellData?.count ?? 0
+        return configuation?.cellData.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -80,8 +68,8 @@ extension TableViewCellWithCollectionView: UICollectionViewDelegate {
             }
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let yourFavoriteMovieViewModel = configuation?.cellData?[indexPath.row] {
-            didSelectHandler?(yourFavoriteMovieViewModel)
+        if let yourFavoriteMovieViewModel = configuation?.cellData[indexPath.row] {
+//            didSelectHandler?(yourFavoriteMovieViewModel)
         }
     }
 }

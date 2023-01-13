@@ -30,6 +30,10 @@ class HomeViewModel: ObservableObject {
     private var cancellable = Set<AnyCancellable>()
     @Published var homeDataModel: HomeDataModel?
     
+    init(homeDataModel: HomeDataModel? = nil) {
+        self.homeDataModel = homeDataModel
+    }
+    
     func getHomeData() {
         getPublisher(endpoint: .movies, type: Movie.self).sink { [weak self] completion in
             if case let .failure(error) = completion {

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 
 class StaffPicksTableViewCell: UITableViewCell, ReusableView, NibLoadableView {
     @IBOutlet private weak var posterImageView: ImageViewWithCache?
@@ -20,10 +21,17 @@ class StaffPicksTableViewCell: UITableViewCell, ReusableView, NibLoadableView {
         }
     }
     
-    var bookmarkHandler: (() -> Void)?
+    private let eventSubject = PassthroughSubject<StaffPicksViewModel, Never>()
+    var eventPublisher: AnyPublisher<StaffPicksViewModel, Never> {
+      eventSubject.eraseToAnyPublisher()
+    }
+
+    var cancellables = Set<AnyCancellable>()
     
     @objc private func bookmarkImageTapped(tapGestureRecognizer: UITapGestureRecognizer) {
-        bookmarkHandler?()
+        if let celldata = celldata {
+            eventSubject.send(celldata)
+        }
     }
     
     override func awakeFromNib() {
@@ -36,6 +44,11 @@ class StaffPicksTableViewCell: UITableViewCell, ReusableView, NibLoadableView {
         
     }
     
+    override func prepareForReuse() {
+      super.prepareForReuse()
+      cancellables = Set<AnyCancellable>()
+    }
+    
     private func configureCell() {
         posterImageView?.loadImage(urlString: celldata?.posterImageURL)
         movieTitleLabel?.text = celldata?.movieTitle
@@ -45,13 +58,3 @@ class StaffPicksTableViewCell: UITableViewCell, ReusableView, NibLoadableView {
     }
     
 }
-
-struct StaffPicksViewModel {
-    let id: Int?
-    let posterImageURL: String?
-    let movieTitle: String?
-    let movieReleaseYear: String?
-    let ratings: Double?
-}
-
-

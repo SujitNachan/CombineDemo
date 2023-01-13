@@ -9,14 +9,15 @@ import UIKit
 import Combine
 
 class HomeViewController: UIViewController {
-    private var movieTableView: UITableView?
+    var movieTableView: UITableView?
     private var cancellables = Set<AnyCancellable>()
     private var movieTableViewDelegate = MovieTableViewDelegate()
-    private let movieTableViewDataSource = MovieTableViewDataSource()
+    private var movieTableViewDataSource: MovieTableViewDataSourceProtocol!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        movieTableViewDataSource.fetchData()
         movieTableViewDataSource.observeHomeDataModel()
     }
     
@@ -28,7 +29,8 @@ class HomeViewController: UIViewController {
         }
         movieTableView?.backgroundColor = .clear
         movieTableView?.delegate = movieTableViewDelegate
-        
+        let movieTableViewDataSourceObj = MovieTableViewDataSource(homeViewModel: HomeViewModel())
+        movieTableViewDataSource = movieTableViewDataSourceObj
         movieTableView?.dataSource = movieTableViewDataSource
         movieTableView?.register(StaffPicksTableViewCell.self)
         movieTableView?.register(TableViewCellWithCollectionView.self)
