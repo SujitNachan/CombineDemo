@@ -35,6 +35,14 @@ class HomeViewControllerTest: XCTestCase {
         movieTableViewDataSource.observeHomeDataModel()
         XCTAssertTrue(movieTableViewDataSource.observeHomeDataModelCalled)
     }
+    
+    func testNumberOfSection() {
+        XCTAssertEqual(movieTableViewDataSource.numberOfSections(in: sut.movieTableView!),0)
+    }
+    
+    func testNumberOfRowsInSection() {
+        XCTAssertEqual(movieTableViewDataSource.tableView(sut.movieTableView!, numberOfRowsInSection: 0),0)
+    }
 }
 
 

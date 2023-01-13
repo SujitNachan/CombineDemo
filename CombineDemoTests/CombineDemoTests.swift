@@ -13,7 +13,7 @@ final class CombineDemoTests: XCTestCase {
     private var homeViewModel: HomeViewModel!
     
     override func setUp() {
-        homeViewModel = HomeViewModel(homeDataModel: HomeDataModel(movies: [], staffPicks: []))
+        homeViewModel = HomeViewModel(homeService: HomeService())
         super.setUp()
     }
     

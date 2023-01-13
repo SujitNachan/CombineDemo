@@ -50,16 +50,17 @@ class MovieTableViewDataSource: NSObject, MovieTableViewDataSourceProtocol {
         self.homeViewModel.getHomeData()
     }
     
-    private func update(homeDataModel: HomeDataModel) {
+    private func update(homeDataModel: HomeDataModelProtocol) {
         self.staffPicks = homeDataModel.staffPicksViewModels
         self.movies = homeDataModel.favoriteMovieViewModels
     }
     
     func observeHomeDataModel() {
-        homeViewModel.$homeDataModel.sink { [weak self] homeDataModel in
-            guard let self = self,
-            let homeDataModel = homeDataModel else { return }
-            self.update(homeDataModel: homeDataModel)
+        homeViewModel.homeViewModelChanageSubject.sink { [weak self] updateViewModel in
+            guard let self = self else { return }
+            self.homeViewModel = updateViewModel
+            self.movies = self.homeViewModel.favoriteMovieViewModels
+            self.staffPicks = self.homeViewModel.staffPicksViewModels
             self.reloadTableSubject.send()
         }
         .store(in: &cancellables)
