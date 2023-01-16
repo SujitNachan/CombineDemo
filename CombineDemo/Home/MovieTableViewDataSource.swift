@@ -34,11 +34,6 @@ class MovieTableViewDataSource: NSObject, UITableViewDataSource {
         self.homeViewModel.getHomeData()
     }
     
-    private func update(homeDataModel: HomeDataModelProtocol) {
-        self.staffPicks = homeDataModel.staffPicksViewModels
-        self.movies = homeDataModel.favoriteMovieViewModels
-    }
-    
     func observeHomeDataModel() {
         homeViewModel.homeViewModelChanageSubject.sink { [weak self] updateViewModel in
             guard let self = self else { return }

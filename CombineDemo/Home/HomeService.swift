@@ -9,21 +9,18 @@ import Foundation
 import Combine
 
 protocol HomeServiceInterface {
-    var fetchMovie: AnyPublisher<[Movie],Error> { get }
-    var fetchStaffPicks: AnyPublisher<[Movie],Error> { get }
+    func fetchMovies(endPoint: String) -> AnyPublisher<[Movie],Error>
 }
 
-class HomeService: ServiceProtocol, HomeServiceInterface {
+class HomeServiceImplementation: HttpClient, HomeServiceInterface {
     var baseURL: String = "https://apps.agentur-loop.com/challenge"
     var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
-    
-    var fetchMovie: AnyPublisher<[Movie],Error> {
-        return getData(endpoint: .movies, type: Movie.self)
-            .eraseToAnyPublisher()
-    }
-    
-    var fetchStaffPicks: AnyPublisher<[Movie],Error> {
-        return getData(endpoint: .staffPicks, type: Movie.self)
+    func fetchMovies(endPoint: String) -> AnyPublisher<[Movie],Error> {
+        guard let url = URL(string: self.baseURL.appending("/\(endPoint)"))
+        else {
+            return Fail(error: NetworkError.invalidURL).eraseToAnyPublisher()
+        }
+        return fetch(request: URLRequest(url: url))
             .eraseToAnyPublisher()
     }
 }

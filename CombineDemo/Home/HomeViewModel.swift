@@ -23,6 +23,7 @@ extension HomeDataModelProtocol {
     }
 }
 
+
 class HomeViewModel: ObservableObject, HomeDataModelProtocol {
     var movies: [Movie] = []
     var staffPicks: [Movie] = []
@@ -36,7 +37,8 @@ class HomeViewModel: ObservableObject, HomeDataModelProtocol {
     }
     
     func getHomeData() {
-        homeService.fetchMovie.sink { completion in
+        homeService.fetchMovies(endPoint: Endpoint.movies.rawValue)
+        .sink { completion in
             if case let .failure(error) = completion {
                 print("Error -> \(error.localizedDescription)")
             }
@@ -47,7 +49,8 @@ class HomeViewModel: ObservableObject, HomeDataModelProtocol {
         }
         .store(in: &cancellable)
         
-        homeService.fetchStaffPicks.sink { completion in
+        homeService.fetchMovies(endPoint: Endpoint.staffPicks.rawValue)
+            .sink { completion in
             if case let .failure(error) = completion {
                 print("Error -> \(error.localizedDescription)")
             }

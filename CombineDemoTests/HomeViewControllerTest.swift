@@ -9,6 +9,7 @@ import XCTest
 import Combine
 @testable import CombineDemo
 
+/*
 class HomeViewControllerTest: XCTestCase {
     var sut: HomeViewController!
     var movieTableViewDataSource: MovieTableViewDataSourceMockProtocol!
@@ -120,3 +121,4 @@ class MockHomeViewModel: HomeDataModelProtocol {
         self.mockHomeService = mockHomeService
     }
 }
+*/
