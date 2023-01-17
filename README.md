@@ -6,3 +6,4 @@
 4. Singleton
 5. Customviews
 6. API calls handling
+7. unit testing with mock data
