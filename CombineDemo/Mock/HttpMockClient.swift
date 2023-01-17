@@ -14,6 +14,8 @@ enum MockFiles: String {
     case fetchStaffPicksSuccess = "staff-picks.json"
     case fetchMovieFailed = "fetch-movie-failed.json"
     case fetchStaffPicksFailed = "fetch-staff-picks-failed.json"
+    case missingFileName = "missingfilename"
+    case corruptedData = "corrupted-data.json"
 }
 
 
@@ -82,12 +84,12 @@ class MockHttpClient: HttpClient {
                 return
             }
             
-            guard let jsonData = try? Data(contentsOf: sourceUrl) else {
+            guard let data = try? Data(contentsOf: sourceUrl) else {
                 promise(.failure(ConfigurationError.CorruptedMockData))
                return
             }
 
-            guard let result = try? JSONDecoder().decode(T.self, from: jsonData) else {
+            guard let result = try? JSONDecoder().decode(T.self, from: data) else {
                 promise(.failure(ConfigurationError.DecodingError))
                return
             }
