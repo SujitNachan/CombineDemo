@@ -20,6 +20,7 @@ enum MockFiles: String {
 enum ConfigurationError: Error {
     case MissingMockFile
     case CorruptedMockData
+    case DecodingError
 }
 
 extension ConfigurationError: LocalizedError {
@@ -29,12 +30,14 @@ extension ConfigurationError: LocalizedError {
             return NSLocalizedString("Missing Mock data file", comment: "Missing Mock data file")
         case .CorruptedMockData:
             return NSLocalizedString("Corrupted Mock data file", comment: "Corrupted Mock data file")
+        case .DecodingError:
+            return NSLocalizedString("Invalid Json data", comment: "Invalid json data")
         }
     }
 }
 
 
-extension Bundle{
+/*extension Bundle{
     func readFile(file: String, withExtension ex: String) -> AnyPublisher<Data, Error> {
         self.url(forResource: file, withExtension: ex)
             .publisher
@@ -56,5 +59,39 @@ extension Bundle{
                 return error
             }
             .eraseToAnyPublisher()
+    }
+}*/
+
+
+class MockHttpClient: HttpClient {
+    var baseURL: String = "https://apps.agentur-loop.com/mock"
+    var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
+    var resultData: Array<Decodable> = []
+    
+    func fetch<T>(request: URLRequest) -> Future<T, Error> where T : Decodable {
+        
+        return Future<T, Error> { promise in
+            
+            guard let fileName = request.url?.lastPathComponent,
+                  let mockFile = MockFiles(rawValue: fileName) else {
+                return promise(.failure(NetworkError.invalidURL))
+            }
+            
+            guard let sourceUrl = Bundle.main.url(forResource: mockFile.rawValue, withExtension: nil) else {
+                 promise(.failure(ConfigurationError.MissingMockFile))
+                return
+            }
+            
+            guard let jsonData = try? Data(contentsOf: sourceUrl) else {
+                promise(.failure(ConfigurationError.CorruptedMockData))
+               return
+            }
+
+            guard let result = try? JSONDecoder().decode(T.self, from: jsonData) else {
+                promise(.failure(ConfigurationError.DecodingError))
+               return
+            }
+            promise(.success(result))
+        }
     }
 }

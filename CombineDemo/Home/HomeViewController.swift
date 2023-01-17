@@ -29,7 +29,7 @@ class HomeViewController: UIViewController {
         }
         movieTableView?.backgroundColor = .clear
         movieTableView?.delegate = movieTableViewDelegate
-        let movieTableViewDataSourceObj = MovieTableViewDataSource(homeViewModel: HomeViewModel(homeService: HomeServiceImplementation()))
+        let movieTableViewDataSourceObj = MovieTableViewDataSource(homeViewModel: HomeViewModel(homeService: HomeServiceImplementation(apiClient: APIClient())))
         movieTableViewDataSource = movieTableViewDataSourceObj
         movieTableView?.dataSource = movieTableViewDataSource
         movieTableView?.register(StaffPicksTableViewCell.self)

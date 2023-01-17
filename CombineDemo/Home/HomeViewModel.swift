@@ -22,25 +22,33 @@ extension HomeDataModelProtocol {
         movies.map({FavoriteMovieViewModel(id: $0.id, imageURL: $0.posterUrl, primaryText: nil, secondaryText: nil)})
     }
 }
+protocol HomeViewModelInterface {
+    func fetchMovies(endPoint: String)
+    func fetchStaffPicks(endPoint: String)
+}
 
 
-class HomeViewModel: ObservableObject, HomeDataModelProtocol {
+class HomeViewModel: ObservableObject, HomeDataModelProtocol, HomeViewModelInterface {
     var movies: [Movie] = []
     var staffPicks: [Movie] = []
-    private var cancellable = Set<AnyCancellable>()
+    var cancellable = Set<AnyCancellable>()
     private var homeService: HomeServiceInterface
     
     var homeViewModelChanageSubject = PassthroughSubject<HomeViewModel,Never>()
+    var errorSubject = PassthroughSubject<Error,Never>()
     
     init(homeService: HomeServiceInterface) {
         self.homeService = homeService
     }
     
-    func getHomeData() {
-        homeService.fetchMovies(endPoint: Endpoint.movies.rawValue)
-        .sink { completion in
+    func fetchMovies(endPoint: String) {
+        homeService.fetchMovies(endPoint: endPoint)
+        .receive(on: RunLoop.main)
+        .sink { [weak self] completion in
+            guard let self = self else { return }
             if case let .failure(error) = completion {
-                print("Error -> \(error.localizedDescription)")
+                print("Error -> \(error.localizedDescription) \(endPoint)")
+                self.errorSubject.send(error)
             }
         } receiveValue: { [weak self] newMovies in
             guard let self = self else { return }
@@ -48,18 +56,23 @@ class HomeViewModel: ObservableObject, HomeDataModelProtocol {
             self.homeViewModelChanageSubject.send(self)
         }
         .store(in: &cancellable)
-        
-        homeService.fetchMovies(endPoint: Endpoint.staffPicks.rawValue)
-            .sink { completion in
-            if case let .failure(error) = completion {
-                print("Error -> \(error.localizedDescription)")
+    }
+    
+    func fetchStaffPicks(endPoint: String) {
+        homeService.fetchMovies(endPoint: endPoint)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                guard let self = self else { return }
+                if case let .failure(error) = completion {
+                    print("Error -> \(error.localizedDescription) \(endPoint)")
+                    self.errorSubject.send(error)
+                }
+            } receiveValue: { [weak self] newMovies in
+                guard let self = self else { return }
+                self.staffPicks = newMovies
+                self.homeViewModelChanageSubject.send(self)
             }
-        } receiveValue: { [weak self] newMovies in
-            guard let self = self else { return }
-            self.staffPicks = newMovies
-            self.homeViewModelChanageSubject.send(self)
-        }
-        .store(in: &cancellable)
+            .store(in: &cancellable)
     }
     
     func bookmark(staffPick: StaffPicksViewModel) {

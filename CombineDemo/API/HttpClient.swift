@@ -19,7 +19,10 @@ protocol HttpClient: AnyObject {
     func fetch<T: Decodable>(request: URLRequest) -> Future<T, Error>
 }
 
-extension HttpClient {
+class APIClient: HttpClient {
+    var baseURL: String = "https://apps.agentur-loop.com/challenge"
+    var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
+    
     func fetch<T: Decodable>(request: URLRequest) -> Future<T, Error> {
         return Future<T, Error> { [weak self] promise in
             guard let self = self else { return }

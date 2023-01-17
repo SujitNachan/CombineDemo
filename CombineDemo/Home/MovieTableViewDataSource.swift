@@ -31,7 +31,8 @@ class MovieTableViewDataSource: NSObject, UITableViewDataSource {
     }
     
     func fetchData() {
-        self.homeViewModel.getHomeData()
+        self.homeViewModel.fetchMovies(endPoint: Endpoint.movies.rawValue)
+        self.homeViewModel.fetchStaffPicks(endPoint: Endpoint.staffPicks.rawValue)
     }
     
     func observeHomeDataModel() {

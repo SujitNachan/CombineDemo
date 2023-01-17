@@ -12,15 +12,19 @@ protocol HomeServiceInterface {
     func fetchMovies(endPoint: String) -> AnyPublisher<[Movie],Error>
 }
 
-class HomeServiceImplementation: HttpClient, HomeServiceInterface {
-    var baseURL: String = "https://apps.agentur-loop.com/challenge"
-    var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
+class HomeServiceImplementation: HomeServiceInterface {
+    var apiClient: HttpClient
+    
+    init(apiClient: HttpClient) {
+        self.apiClient = apiClient
+    }
+    
     func fetchMovies(endPoint: String) -> AnyPublisher<[Movie],Error> {
-        guard let url = URL(string: self.baseURL.appending("/\(endPoint)"))
+        guard let url = URL(string: self.apiClient.baseURL.appending("/\(endPoint)"))
         else {
             return Fail(error: NetworkError.invalidURL).eraseToAnyPublisher()
         }
-        return fetch(request: URLRequest(url: url))
+        return self.apiClient.fetch(request: URLRequest(url: url))
             .eraseToAnyPublisher()
     }
 }
