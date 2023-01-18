@@ -20,6 +20,7 @@ final class CombineDemoTests: XCTestCase {
         apiClient = MockHttpClient()
         homeViewModel = HomeViewModel(homeService: HomeServiceImplementation(apiClient: apiClient))
 //        homeViewController = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "HomeViewController")
+        UserDefaults.standard.removeObject(forKey: "Bookmarks")
     }
     
     override func tearDown() {
@@ -103,5 +104,28 @@ final class CombineDemoTests: XCTestCase {
             expectation.fulfill()
         }.store(in: &cancellable)
         waitForExpectations(timeout: 3)
+    }
+    
+    func testAddBookmarkSuccess() {
+        let expectation = self.expectation(description: "AddBookmarkSuccess")
+        homeViewModel.fetchStaffPicks(endPoint: MockFiles.fetchStaffPicksSuccess.rawValue)
+        homeViewModel.homeViewModelChanageSubject
+            .sink { homeViewModel in
+                if let staffPicks = homeViewModel.staffPicksViewModels.first {
+                    homeViewModel.bookmark(staffPick: staffPicks)
+                    XCTAssertEqual(staffPicks.id, UserDefaultDataManager.shared.retriveBookMarks().first)
+                }
+            
+            expectation.fulfill()
+        }.store(in: &cancellable)
+        waitForExpectations(timeout: 3)
+    }
+    
+    func testRemoveBookmarkSuccess() {
+        //add bookmark
+        UserDefaultDataManager.shared.addBookmark(id: 530915)
+        //remove bookmark
+        UserDefaultDataManager.shared.removeBookmark(id: 530915)
+        XCTAssertEqual(UserDefaultDataManager.shared.retriveBookMarks(),[])
     }
 }
